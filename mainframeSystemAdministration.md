@@ -1,7 +1,7 @@
 # Mainframe Work based learning system administration
 
 ## 1. Wat is het verschil tussen CICS en batch?
-    Batch programma’s hebben geen interactie met een gebruiker en zijn op voorhand ingeplant om uitgevoerd te worden op een specifiek tijdstip en CICS worden onmiddellijk afgerond en geven de output onmiddellijk. 
+Batch programma’s hebben geen interactie met een gebruiker en zijn op voorhand ingeplant om uitgevoerd te worden op een specifiek tijdstip en CICS worden onmiddellijk afgerond en geven de output onmiddellijk. 
 ## 2. Wat is een mainframe?
 ## 3. Wat zijn de grote voordelen van een mainframe (RAS)?
 ## 4. Wat is z/OS?
