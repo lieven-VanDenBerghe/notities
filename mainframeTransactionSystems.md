@@ -32,7 +32,7 @@ EXEC CICS command option(value) ...;
 ````  
 
 CICS commando voor scherm interactie  
-- Receive map: haalt input data op van de terminal  
+- **RECEIVE MAP**: haalt input data op van de terminal  
   ````
   EXEC CICS
     RECEIVE MAP ('INQMAP1')
@@ -40,8 +40,20 @@ CICS commando voor scherm interactie
             INTO (INQMAP1I)
   END-EXEC
   ````
-- Send map: verzend info naar de terminal
-- 
+- **SEND MAP**: verzend info naar de terminal  
+
+CICS commando’s om controle van een programma aan een andere programma te geven.  
+- **ABEND**: geeft controle aan een aband routine of geeft controle aan CICS
+- **LINK**: roep een programma op in een lager level
+- **RETURN**: geeft de controle terug aan CICS of het bovenliggend programma
+- **XCTL**: geef controle aan een ander programma  
+
+CICS commando’s om VSAM files te processen. 
+- **DELETE**: delete record van een file
+- **READ**: haal een specifiek record op van een file
+- **REWRITE**: update een record in een file
+- **WRITE**: voeg een record toe aan een file
+
 
 ## 6. Hoeveel karakters telt een transactienaam?
 
