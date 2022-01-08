@@ -72,6 +72,6 @@ Een transactie heeft een ID bestaande uit 4 karakters.
 **Physical map**: Is een load module in de load library die informatie bijhoud over hoe de map getoond moet worden.  
 **Symbolic map**: Is een copy book in de library. Het copy book wordt gebruikt door CICS applicatie programma’s om informatie te verzenden en ontvangen van de terminal.   
 
-Een physical map heeft informatie over hoe de map moet weergegeven worden(details over de attributen van alle velden in de map en hun posities, display format van de map voor een bepaalde terminal ), een symbolic map heeft enkel de variabel data en named fields om data te kunnen lezen en schrijven in een map.  
+Een physical map heeft informatie over hoe de map moet weergegeven worden(details over de attributen van alle velden in de map, hun posities en display format van de map voor een bepaalde terminal ), een symbolic map heeft enkel de variabel data en named fields om data te kunnen lezen en schrijven in een map.  
 
 ![transaction](/images/PhisicalSymbolicMap.png)
