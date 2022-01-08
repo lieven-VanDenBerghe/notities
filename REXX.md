@@ -1,7 +1,8 @@
 Run een programma met optie ex voor de member.  
 
-# Voorbeelden
-## H1
+# Voorbeelden  
+
+## H1 Introduction to REXX
 ```
 /*REXX*/
 /*naam hoofdletter gevoelig*/
@@ -11,7 +12,7 @@ SAY "Hello," name
 EXIT
 ```  
 
-## H2
+## H2 Writing and Running a REXX EXEC
 
 ```
 /*REXX*/
@@ -64,5 +65,391 @@ END
 EXIT
 ````  
 
-# H3  
+## H3 Using Variables and Expressions    
 
+### Aritmetic Operators  
+
+|Operator|Meaning                      |  |Operator|Meaning      |
+|--------|-----------------------------|--|--------|-------------|
+|+       |Add                          |  |-       |Subtract     |
+|*       |Multiply                     |  |/       |Divide       |
+|%       |Divide (Wole number rest)    |  |//      |Remainder    |
+|**      |Raise to a whole number power|  |-number |Negate number|
+|+number |Add number to 0              |  
+
+|Priority|Operator|Meaning                    |
+|--------|--------|---------------------------|
+|1       |+-      |Prefix (unary)             |
+|2       |**      |Power                      |
+|3       |* / % //|Multiplication and division|
+|4       |+-      |Addition and subtraction   |  
+
+````
+/*REXX*/
+SAY 7 + 2    /* answer is 9 */
+SAY 7 ­- 2    /* answer is 5 */
+SAY 7 * 2    /* answer is 14 */
+SAY 7 ** 2   /* answer is 49 */
+SAY 7 ** 2.5 /* answer is an error */
+
+SAY 7.5 / 2  /* answer is 3.75 */
+SAY 7 / 2    /* answer is 3.5, thus no integer division */
+
+SAY 7.5 % 2  /* answer is 3, integer division even for reals */
+SAY 7 % 2    /* answer is 3 */
+
+SAY 7.5 // 2 /* answer is 1.5, remainder may not be integer */
+SAY 7 // 2   /* answer is 1 */
+
+EXIT
+````  
+### Comparison Operators  
+
+|Oper|Meaning           |Oper|Meaning           |
+|----|------------------|----|------------------|
+|==  |Strictly Equal    |=   |Equal             |
+|\\==|Not Strictly Equal|\\= |Not Equal         |
+|>   |Greater tan       |<   |Lesser than       |
+|<>  |Not equal         |>=  |Greater or equal  |
+|\\< |Not less than     |<=  |Less than or equal|
+|\\> |Not greater than  |  
+
+(gives 0 for False and 1 for True)  
+
+````
+/*REXX*/
+SAY "'ABC' == 'abc' gives" ('ABC' == 'abc')    /* false */
+SAY "'abc' = ' abc ' gives" ('abc' = ' abc ')  /* true */
+SAY "'ABC' = ' abc ' gives" ('ABC' = ' abc ')  /* false */
+SAY "'DEF' > 'ABC' gives" ('DEF' > 'ABC')      /* true */
+SAY "' DEF' >> 'ABC'" gives" (' DEF' >> 'ABC') /* false */
+
+EXIT
+````  
+
+### Boolean Operators
+
+|Precedence|Operator|Meaning     |
+|----------|--------|------------|
+|1         |\       |Not         |
+|2         |&       |And         |
+|3         |\|      |Or          |
+|3         |&&      |Exclusive or|  
+
+````
+/*REXX*/
+PARSE ARG season snowing broken_leg
+IF ((season = ’winter’) | (snowing =’yes’)) & (broken_leg =’no’) THEN
+SAY ’Go skiing.’
+ELSE
+SAY ’Stay home.’
+
+EXIT
+````  
+
+### Concatenation Operators
+
+|Operator |Meaning                                    |
+|---------|-------------------------------------------|
+|*blank*  |Concatenate terms with no blank in between |
+|\|\|     |Concatenate terms with no blanks in between|
+|*abuttal*|Concatenate terms with no blanks in between|  
+
+````
+/*REXX*/
+SAY hello          world    /* (multiple) blanks */   /*HELLO WORLD*/
+SAY hello   ||       world  /* || operator */         /*HELLOWORLD*/
+SAY 'hello'world            /* abuttal */             /*helloWORLD*/
+
+EXIT
+````  
+
+## H4 Flow Control  
+
+### IF / THEN / ELSE ...  
+
+````
+/*REXX*/
+IF expression THEN
+    DO
+        instruction
+    END
+ELSE NOP   /*NOP = no operation*/
+
+EXIT
+````  
+
+### SELECT / WHEN / OTHERWISE / END  
+
+````
+/*REXX*/
+SELECT
+    WHEN expression THEN 
+        DO
+            instruction
+        END
+    WHEN expression THEN 
+        DO
+            instruction
+        END
+    WHEN expression THEN 
+        DO
+            instruction
+        END
+    OTHERWISE
+        NOPs
+END
+
+EXIT
+````  
+
+### Loops  
+
+#### Repetitive Loops  
+
+````
+/*REXX*/
+DO 3
+    SAY 'Hello!'
+END
+
+EXIT
+
+Geeft:
+Hello!
+Hello!
+Hello!
+````  
+
+````
+/*REXX*/
+DO i = 1 to 3      /* DO i = 1 to 6 BY 2 ==== in stappen an 2*/
+    SAY 'Hello!'   /*Met ITERATE kan je 1 van de 3 stappen overslaan*/
+END
+
+EXIT
+
+Geeft:
+Hello!
+Hello!
+Hello!
+````  
+#### Infinite Loops  
+
+````
+/*REXX*/
+DO FOREVER
+    SAY "What's your name? (blank to quit)"
+    PARSE PULL name
+    IF name = '' THEN
+        EXIT     /*Met LEAVE ga je uit de loop zonder programma te stoppen*/
+    ELSE
+        SAY 'Hello,' name
+END
+SAY 'Goodbye' /* This will never be shown! */
+
+EXIT
+````  
+
+#### Conditional Loops  
+
+````
+/*REXX*/
+DO WHILE expression /* expression must be true */
+    instruction(s)
+
+END
+
+EXIT
+````   
+
+#### Do Until
+
+````
+/*REXX*/
+DO UNTIL expression /* expression must be false */
+    instruction(s)
+END
+
+EXIT
+````  
+
+## H5 Using Functions  
+
+````
+/*REXX*/
+SAY 7 + max(­2,3,1) /* max is a built­in arithmetic function */
+
+EXIT
+````  
+
+### Built-in Functions  
+
+- Arithmetic functions  
+    **ABS**: Returns the absolute value of the input number.  
+    **MAX**: Returns the largest number from the list specified.  
+    **MIN**: Returns the smallest number from the list specified.  
+    **RANDOM**: Returns a quasi­random, non­negative whole number in the range specified.  
+    ````
+    /*REXX*/
+    sequence = RANDOM(1, 6,12345) /* 12345 is the seed */
+    DO 9
+        sequence = sequence RANDOM(1,6) /* Do not use seed here! */
+    END
+    SAY sequence  /*resultaten van 1 tot en met 6*/
+
+    EXIT
+    ````  
+
+- Comparison functions  
+    **COMPARE**: Returns 0 if the two input strings are identical. Otherwise, returns the position of the first character that does not match.  
+    **DATATYPE**: Returns a string indicating the input string has a particular data type, such as a number or character string.  
+
+    |Letter|Meaning     |Letter|Meaning    |
+    |------|------------|------|-----------|
+    |A     |Alpanumeric |B     |Binary     |
+    |L     |Lowercase   |M     |Mixed case |
+    |N     |Number      |U     |Uppercase  |
+    |W     |Whole number|X     |heXadecimal|  
+
+    ````
+    /*REXX*/
+    SAY DATATYPE('12')           /*NUM*/
+    SAY DATATYPE('123*')         /*CHAR*/
+    SAY DATATYPE('Fred', 'M')    /*1*/
+    SAY DATATYPE('Fred', 'L')    /*0*/
+    SAY DATATYPE(' Fred ', 'A')  /*0*/
+
+    EXIT
+    ````  
+
+- Conersion functions  
+    ````
+    /*REXX*/
+    SAY D2X(42)         /* Decimal to Hexadecimal */        /*2A*/
+    SAY X2D(2A)         /* Hexadecimal to Decimal */        /*42*/
+    SAY C2X(' 123 ')    /* Character to Hexadecimal */      /*40F1F2F340*/
+    
+    EXIT
+    ````
+
+- Formatting functions  
+    **CENTER**: centers a given string in a string of the specified length with padding characters as necessary.  
+    **COPIES**: returns the given number of copies of the input string.  
+    **JUSTIFY**: justifies a string to a specified length.  
+    **LEFT/RIGT**: returns a string of the specified length, truncated or padded on the right/left as needed.  
+    ````
+    /*REXX*/
+    SAY COPIES('*', 11) 
+    SAY CENTER(' Hello ', 11, '*')
+    SAY COPIES('*', 11)
+    
+    EXIT
+
+    geeft:
+    ***********
+    ** Hello **
+    ***********
+
+    ````  
+
+- String manipulating functions  
+    **ABBREV**: checks is one string has a minimum length and is the start of another string.  
+    **LENGTH**: returns the length of the input string.  
+    **POS**: obtains the position of one string in another.  
+    **REVERSE**: reverses a string.  
+    **STRIP**:  returns a string which has the leading and/or trailing characters of the input string removed.  
+    **SUBSTRING**: returns a substring of the input string.  
+    **SUBWORD**: return a substring starting at the specified word number.  
+    **VERIFY**:  checks whether the input string consists solely of reference characters.  
+    **WORD**: returns a word from the input string.  
+    ````
+    /*REXX*/
+    SAY "Give a word starting with a capital letter."
+    PARSE PULL input /* Preserve case with parse pull. */
+    input = strip(input,'L') /* Remove leading blanks. */
+    capitals = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    IF verify(substr(input, 1, 1), capitals) = 0 THEN
+        SAY "OK, your input starts with a capital letter."
+    ELSE
+        SAY "Hey! Please read the instructions!"
+
+    EXIT
+    ```` 
+    
+- Miscellaneous functions  
+    **ADDRESS**: gives the name of the environment to which commands are currently being sent.  
+    **ARG**: returns an argument string or information about the argument strings to a program or internal routine. (is niet arg instructie)  
+    **DATE**: returns the current date or performs conversion between dates.  
+    **QUEUED**: returns the number of lines on the data stack.  
+    **TIME**: returns the local time.  
+    ````
+    /*REXX*/
+    SAY "Are you American or European?"
+    PULL input /* input converted to uppercase */
+    SELECT
+        WHEN abbrev("AMERICAN", input, 1) THEN DO
+            SAY "Today's date is" date('U') || "."
+            END
+        WHEN abbrev("EUROPEAN", input, 1) THEN DO
+            SAY "Today's date is" date('E') || "."
+            END
+        OTHERWISE
+            SAY "Could not understand where you are from",
+                "but today's date is" date('N') || "."
+    END
+
+    EXIT
+    ````  
+
+## H6 Writing Subroutines and Functions  
+
+````
+/*REXX*/
+CALL subroutine_name ar1, arg2  /*subroutine*/
+
+x = subroutine_name(arg1,arg2)  /*function*/
+
+EXIT
+
+subroutine_name:
+    ARG argument1, argument2
+    doSomting
+RETURN  /*RETURN 2*(1+5)  return waarde is opgeslagen in variabele RESULT*/
+````  
+
+## H7 Manipulating Data  
+
+### Compound Variable  
+
+````
+/**/
+FRED.5
+Array.Row.Col        /* simulates multiple dimensions */
+employee.name.phone  /* an associative array */
+
+EXIT
+````  
+
+````
+/**/
+FRED.5
+employee.7 = "Mister Pink"
+new = 7
+SAY employee.new
+employee.new = "Mister Brown"
+SAY employee.7
+employee = "Mister Orange" /* 'ordinary' variable */
+SAY employee.1
+
+
+EXIT
+
+gives: 
+Mister Pink
+Mister Brown
+EMPLOYEE.1
+
+````  
+
+## H8

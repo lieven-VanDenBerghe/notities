@@ -2,11 +2,11 @@
 
 ## 1. Wat is het verschil tussen CICS en batch?
 
-Batch programma’s hebben geen interactie met een gebruiker en zijn op voorhand ingeplant om uitgevoerd te worden op een specifiek tijdstip en CICS worden onmiddellijk afgerond en geven de output onmiddellijk.   
+Batch programma’s hebben geen interactie met een gebruiker en zijn op voorhand ingeplant om uitgevoerd te worden op een specifiek tijdstip, en CICS worden onmiddellijk afgerond en geven de output onmiddellijk.   
 
 ## 2. Wat is een mainframe?
 
-Een mainframe is een data server die ontworpen is om commerciële databanken, transactie servers en programma’s te hosten die een hoge graat van beschikbaarheid en beveiliging nodig hebben. Mainframes kunnen biljoenen transacties snel uitvoeren aan een hoge  graat van beschikbaarheid en beveiliging
+Een mainframe is een data server die ontworpen is om commerciële databanken, transactie servers en programma’s te hosten die een hoge graat van beschikbaarheid en beveiliging nodig hebben. Mainframes kunnen biljoenen transacties snel uitvoeren aan een hoge  graat van beschikbaarheid en beveiliging.
 
 ## 3. Wat zijn de grote voordelen van een mainframe (RAS)?
 
@@ -21,7 +21,7 @@ Een mainframe is een data server die ontworpen is om commerciële databanken, tr
 
 ## 4. Wat is z/OS?
 
-z/OS is het mees gebruikte besturingssysteem voor de mainframe. Het is het perfecte systeem voor heel grote jobs en een grote werkdruk van een grote hoeveelheid gebruikers tegelijkertijd.
+z/OS is het meest gebruikte besturingssysteem voor de mainframe. Het is het perfecte systeem voor heel grote jobs en een grote werkdruk van een grote hoeveelheid gebruikers tegelijkertijd.
 
 ## 5. Geef 4 karakteristieken van z/OS
 
@@ -32,7 +32,7 @@ z/OS is het mees gebruikte besturingssysteem voor de mainframe. Het is het perfe
 •	Verwerkt een grote hoeveelheid batch jobs en de werkdruk automatisch verdelen.  
 •	Laat meerdere communicatie subsystemen toe.  
 •	Beveiliging is geïntegreerd in applicaties, sources en profielen.   
-•	Kaan gemengde taken verwerken (online en batch).  
+•	Kan gemengde taken verwerken (online en batch).  
 •	Zorgen dat SLA(service level agreements) kan behaalt worden.  
 
 ## 6. Wat is het verschil tussen multiprogramming en multiprocessing?
@@ -48,7 +48,7 @@ Om de mainframe een extreem groot geheugen te geven wordt er een virtueel geheug
 
 ## 8. Geef minstens 2 andere operating systems dan z/OS op mainframe
 
-•	z/VM: z/Virtual Macine -  kan anere OS   
+•	z/VM: z/Virtual Macine -  kan andere OS   
 •	VSE: z/Virtual Storage Extended – voor kleinere mainfram computers  
 •	Linux for zSeries: linux op de mainframe  
 •	z/TPF: z/Transaction Processing Facility – voor bedrijven die veel transacties moeten verwerken
