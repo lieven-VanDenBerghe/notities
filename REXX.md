@@ -452,4 +452,182 @@ EMPLOYEE.1
 
 ````  
 
-## H8
+Initialiseren van een compound variabele en vullen.  
+````
+/*REXX*/
+DO i = 1 TO 4
+    SAY 'Enter an employee name.'
+    PARSE PULL employee.i
+END
+
+
+EXIT
+````  
+
+## H8 Entering Commands from an EXEC  
+
+Programma in REXX op locatie userid.examples.exec.  
+````
+/*REXX*/
+PARSE ARG s
+SAY s
+
+EXIT
+````  
+
+Commando dat REXX oproept.  
+````
+EXEC examples(targ) 'rexx.input' EXEC
+````  
+
+Resultaat is:  
+````
+rexx.input
+````  
+
+## H9 Debugging EXECs  
+
+````
+TRACE I
+```` 
+Zetten om trace te activeren.  
+
+Error handeling.  
+````
+/*REXX*/
+signal on error 
+signal on failure 
+signal on syntax 
+
+
+/*code*/
+
+
+signal off error 
+signal off failure
+signal off syntax 
+EXIT
+
+error: failure: syntax:
+
+say 'An error has occured' 
+say rc 
+say signal
+````  
+
+## H10 Using TSO/E External Functions  
+
+Some external functions.  
+- **LISTDSI**: Lists data set information in specified variables (and indicates success or failure). Some variables set by LISTDSI.  
+
+|Variable  |Contents                                                                |
+|----------|------------------------------------------------------------------------|
+|SYSDSNAME |Data set name                                                           |
+|SYSVOLUME |Volume Serial ID                                                        |
+|SYSUNIT   |Device unite on witch volume resides                                    |
+|SYSDSORG  |Data set organization: PS, PO, VS, ...                                  |
+|SYSRECFM  |Record format: F, FB, U, V, VB, ....                                    |
+|SYSLRECL  |Logical Record Length                                                   |
+|SYSBLKSIZE|Block Size                                                              |
+|SYSUDIRBLK|Directory blocks used ­ returned only for PDS when DIRECTORY is specified|
+|SYSMEMBERS|Number of members ­ returned only for PDS when DIRECTORY is specified    |
+|SYSREASON |LISTDSI reason code                                                     |  
+  
+
+- **MSG**: Controls the display of TSO/E messages.  
+- **OUTTRAP**: Traps lines of TSO/E command output into a specified series of variables.  
+- **SYSDSN**: Checks whether a specified data sets exists.  
+- **SYSVAR**: Can return information about the user, terminal, language, etc..  
+
+````
+/*REXX*/
+x = LISTDSI(examples.rexx)
+x = LISTDSI('examples.rexx') /* Looks for PREFIX.examples.rexx */
+
+/* Looks for PREFIX.examples.rexx */
+x = LISTDSI("'prefix.examples.rexx'")
+x = LISTDSI('''prefix.examples.rexx''')
+
+var = "'sys1.proclib'" /* Note use of ' inside " */
+x = LISTDSI(var) /* Looks for SYS1.PROCLIB */
+var = "examples.rexx"
+x = LISTDSI(var) /* Looks for PREFIX.EXAMPLES.REXX */
+EXIT
+````  
+
+## H11 Storing Information in the Data Stack  
+
+````
+/*REXX*/
+elem1 = 'String 1 for the data stack.'
+PUSH elem1                                  /* put at the top */
+elemA = 'String A for the data stack.'
+QUEUE elemA                                 /* put at the bottom */
+PULL item                                   /* retrieve top and translate to uppercase */
+SAY item
+PARSE PULL item                             /* retrieve top preserving case */
+SAY item
+
+EXIT
+
+gives: 
+STRING 1 FOR THE DATA STACK.
+String A for the data stack.
+````  
+
+````
+number = QUEUED() /* Gets the number of elements on the data stack. */
+````  
+
+````
+TSO/E REXX DELSTACK /*delete all data on stack*/
+````
+
+## H12 Input/Output Processing  
+
+EXECI0 to read all lines from a data set allocates to the DD name MYINDD:  
+````
+"EXECIO * DISKR myindd (FINIS"
+````  
+\* = all records  
+DISKR = will read (DISKRU read and update/ only last line update)  
+FINIS = closes file after operation  
+
+````
+"EXECIO 25 DISKR ... " /* Reads 25 records */
+
+"EXECIO 0 DISKR myindd (OPEN" /* Opens the data set witout readingg it. */
+
+"ALLOC DA(io.data) F(myindd) SHR REUSE" /*allocate dataset*/
+
+"EXECIO * DISKR myindd 100 (FINIS" /*start read at line 100*/
+
+"EXECIO * DISKR myindd (STEM newvar." /*read all lines in a stem var*/
+/*newvar.0 = nr lines, newvar.1 = first line*/
+
+"EXECIO * DISKW myoutdd (FINIS" /*write all data from stack to data set*/
+
+"EXECIO 25 DISKW ... " /* Writes 25 records */
+
+"EXECIO 0 DISKW myindd (OPEN" /* Opens the data set. without writing*/
+
+"EXECIO 0 DISKW myindd (FINIS" /*empty data set, follows the last command*/
+
+"ALLOC DA(io.data) F(myoutdd) OLD REUSE" /*alocate dataset, Note the use of OLD! */
+````  
+
+Example: Copying a Data Set
+````
+/*REXX*/
+/* This EXEC copies all records from PREFIX.my.input to */
+/* a new dataset called PREFIX.my.output. */
+/* Note: additional error checking would usually be done. */
+/*****************************************************************/
+"ALLOC DA(my.input) F(datain) SHR REUSE"
+"ALLOC DA(my.output) F(dataout) LIKE(my.input) NEW"
+"EXECIO * DISKR datain (FINIS"
+n = QUEUED()
+"EXECIO" n "DISKW dataout (FINIS"
+"FREE F(datain dataout)"
+EXIT
+````  
