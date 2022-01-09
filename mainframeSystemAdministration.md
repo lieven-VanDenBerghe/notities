@@ -38,7 +38,7 @@ z/OS is het meest gebruikte besturingssysteem voor de mainframe. Het is het perf
 ## 6. Wat is het verschil tussen multiprogramming en multiprocessing?
 
 Multiprogramming is de mogelijkheid om meerdere programma’s gelijktijdig uit te voeren.  
-Multiprocessing wil zeggen dat er meerdere processors zijn die gelijktijdig werken en verspillende hardware bronnen gebruiken.
+Multiprocessing wil zeggen dat er meerdere processors zijn die gelijktijdig werken en verschillende hardware bronnen gebruiken.
 
 ## 7. Leg virtueel geheugen uit: begrippen te gebruiken: real – virtual – auxilary
 
@@ -56,7 +56,7 @@ Om de mainframe een extreem groot geheugen te geven wordt er een virtueel geheug
 
 ## 9. Wat is een LPAR?
 
-Een LPAR is een opdeling van de mainframe in meerdere stukken (kleinere mainframes), deze hebben elk hun eigen operating system. Men kan processors specifiek toewijzen aan 1 LPAR of hem delen over meerdere LPARs. Deze LPARs gebruiken cannels om te communiceren met de data.  
+Een LPAR is een opdeling van de mainframe in meerdere stukken (kleinere mainframes), deze hebben elk hun eigen operating system. Men kan processors specifiek toewijzen aan 1 LPAR of hem delen over meerdere LPARs. Deze LPARs gebruiken channels om te communiceren met de data.  
 
 ![LPARs](/images/LPARs1.png)  
 
