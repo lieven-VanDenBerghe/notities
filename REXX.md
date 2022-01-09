@@ -65,6 +65,21 @@ END
 EXIT
 ````  
 
+Run.  
+````
+Run explicitly:
+    exec 'hog0002.examples.rexx(test)' exec                   /*ga f3 tot REDY in rood dan enter comando*/
+
+Run implicitly:
+    alloc f(sysuexec) dsn('hog0002.examples.rexx') shr reuse  /*Alocate to file name SYSUEXEC*/
+
+    altlib activate user(exec)                                /*Activate the user library*/
+
+    %test                                                     /*run*/
+
+
+```` 
+
 ## H3 Using Variables and Expressions    
 
 ### Aritmetic Operators  
@@ -630,4 +645,136 @@ n = QUEUED()
 "EXECIO" n "DISKW dataout (FINIS"
 "FREE F(datain dataout)"
 EXIT
+````  
+# Oefeningen  
+
+## 1 General Exercises  
+
+1. Write a “Hello World” program. Your program should display the string “Hello from the Mainframe” when executed.  
+Try to execute your EXEC both explicitly and implicitly.  
+
+````
+/*REXX*/         
+SAY 'Hello World'
+
+EXIT             
+````  
+
+````
+Run explicitly:
+    exec 'hog0002.examples.rexx(test)' exec                   /*ga f3 tot REDY in rood dan enter comando*/
+
+Run implicitly:
+    alloc f(sysuexec) dsn('hog0002.examples.rexx') shr reuse  /*Alocate to file name SYSUEXEC*/
+
+    altlib activate user(exec)                                /*Activate the user library*/
+
+    %test                                                     /*run*/
+
+
+````  
+
+2. Write a personalised “Hello World” program.  
+    (a) In the first version the user’s name is asked interactively. The program displays “Hello from the Mainframe, name” when executed. The name should be displayed  exactly as it was entered.  
+
+    (b) In the second version the user’s name is passed on the command line. The effect is identical as before.  
+
+    (c) In the third version the program first checks whether something has been passed on the command line. When nothing is passed on the command line the user’s name is asked interactively, otherwise the argument on the command line is assumed to be the user’s name.  
+
+    Thus   
+%hello Watson yields   
+Hello from the Mainframe, Watson  
+while  
+%hello  
+leads to an interactive session.  
+
+````
+(a)
+/*REXX*/                                   
+SAY 'Enter your name.'                      
+PARSE PULL name                            
+SAY 'Hello from the Mainframe,' name || '.'
+EXIT 
+
+(b)
+/*REXX*/                                   
+SAY 'Ener your name.'                      
+PARSE ARG name                             
+SAY 'Hello from the Mainframe,' name || '.'
+EXIT                                       
+
+%hello Watson
+
+(c)
+/*REXX*/                                         
+PARSE ARG name                                   
+IF name = '' THEN                                
+   DO                                            
+      SAY 'Ener your name.'                      
+      PARSE PULL name                            
+      SAY 'Hello from the Mainframe,' name || '.'
+   END                                           
+ELSE                                             
+   DO                                            
+      SAY 'Hello from the Mainframe,' name || '.'
+   END                                           
+EXIT                                             
+
+````  
+
+3. Write a REXX procedure that checks whether or not an email address is valid. An email address is valid when it contains exactly one ’@’ character. Before (user name) and after (domain) the ’@’ character there should only be alphabetic characters (i.e. letters and digits) and periods (.). The procedure should be called as follows:  
+call checkemail email  
+The variable RESULT is 0 when the email address is valid. In this case the data stack should contain the user name and domain from the email address. Thus, pulling an item from the data stack yields the user name, doing a second pull should yield the domain. 2 REXX Exercises September 19, 2019When the email address is not valid, then the RESULT variable should indicate what is wrong with the email address. The data stack should be unchanged in this case. Test the procedure by calling it from a main program that repeatedly asks for an email address (until the user decides to quit).  
+
+````
+/*REXX*/                                                      
+SAY 'Enter a email to check.'                                 
+SAY 'Enter 0 to quit'                                         
+DO FOREVER                                                    
+   PARSE PULL email                                           
+      IF email = 0 THEN                                       
+         LEAVE                                                
+   CALL checkemail email                                      
+   SAY 'Enter a email to check.'                              
+   SAY 'Enter 0 to quit'                                      
+END                                                           
+EXIT                                                          
+                                                              
+checkemail:                                                   
+ PARSE ARG adres                                              
+ PARSE VAR adres v1"@"v2"@"v3 .                               
+ IF v2='' | v3<>'' THEN                                       
+    DO                                                        
+       SAY 'A valid email address contains one @'             
+       RETURN                                                 
+    END                                                       
+ alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGIJKLMNOPQRSTUVWXYZ'
+ nrAndPoint = '0123456789.'                                   
+                                                              
+ alphanr = alpha || nrAndPoint                                
+ IF VERIFY(v1, alphanr)<>0 | VERIFY(v2, alphanr)<>0 THEN      
+    DO                                                        
+       SAY 'Email address must consist of a-z A-Z 0-9 or . .' 
+       RETURN                                                 
+    END                                                       
+ PUSH v2                                                      
+ PUSH v1                                                      
+ PARSE PULL item                                              
+ SAY 'User name:' item                                        
+ PARSE PULL item                                              
+ SAY 'Domain:' item                                                          
+ SAY 'Email address:' adres
+ SAY ''                    
+RETURN                                                
+````  
+
+4.  (a) Write a program to calculate a person’s age in days. The person’s birthday is entered interactively in the format dd/mm/jjjj. Hint: Look up the date function.  
+(b) Enhance your program so that it first checks whether the given birthday is valid. In particular you will need to check that the three constituents of the given date are indeed whole numbers. Further, you should check that the number of days in the month is valid. Please consider leap years correctly:  
+• any year not divisible by four is not a leap year  
+• a year divisible by four is a leap year, however  
+• if the year is divisible by 100 it is not a leap year, however  
+• if the year is divisible by 400 it is a leap year.  
+Thus, 1996 is a leap year, 2000 is a leap year, but 1900 is not a leap year.  
+
+````
 ````  
