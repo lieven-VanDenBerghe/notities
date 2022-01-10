@@ -790,3 +790,26 @@ age = today - birthday
 SAY age                                        
 EXIT                                           
 ````  
+
+## 2 REXX in a mainframe environment  
+
+1. The cat program Write a REXX EXEC that expects a dataset name on the command line and displays all the records of the dataset on the screen surrounded by > and < to make the record boundaries clearer.   
+Possible ways invoke the EXEC (with its own program source as argument) are   
+%cat ba1920.exec(cat) or   
+%cat ’hog00xx.ba1920.exec(cat)’  
+or, when invoked explicitly   
+EXEC ba1920(cat) ’ba1920.exec(cat)’ EXEC or,   
+using the fully qualified dataset name:   
+EXEC ba1920(cat) ’’’hog00xx.ba1920.exec(cat)’’’ EXEC  
+
+````
+/*REXX*/                               
+PARSE ARG dataset                      
+"ALLOC DA("dataset") SHR REUSE"        
+"EXECIO * DISKR dataset (STEM newvar." 
+DO i = 1 to newvar.0                   
+   PARSE VAR newvar.i v1"           "v2
+   SAY '>' || STRIP(v1) || '<'         
+END                                    
+EXIT                                   
+````  
