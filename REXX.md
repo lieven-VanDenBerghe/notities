@@ -777,4 +777,16 @@ RETURN
 Thus, 1996 is a leap year, 2000 is a leap year, but 1900 is not a leap year.  
 
 ````
+(a)
+/*REXX*/                                       
+SAY 'Enter your birthday in format dd/mm/jjjj.'
+PULL birthday                                  
+PARSE VAR birthday dd"/"mm"/"jjjj .            
+birthday = DATE(,jjjj || mm || dd, 'S')        
+today = DATE()                                 
+birthday = DATE('B',birthday)                  
+today = DATE('B',today)                        
+age = today - birthday                         
+SAY age                                        
+EXIT                                           
 ````  
