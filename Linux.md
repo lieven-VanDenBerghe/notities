@@ -1153,7 +1153,874 @@ sudo tail -f /var/log/audit/audit.log
 sudo grep denied /var/log/audit/audit.log
 ````  
 
-einde h5  
+## Scripting (verolg)
+
+### Fouten opsporen  
+
+- Syntax check: `bash -n script.sh`  
+- ShellCheck: `shellcheck script.sh`  
+- Druk veel info af (`printf` of `echo`)  
+- Debug-mode:
+  - `bash -x script.sh`
+  - In het script: `set -x` en `set +x`  
+
+### Fouten voorkomen
+
+Begin elk script met:  
+
+````bash
+set -o errexit   # abort on nonzero exitstatus
+set -o nounset   # abort on unbound variable
+set -o pipefail  # don't hide errors within pipes
+````  
+
+### Booleans in Bash
+### Logische operatoren
+
+````bash
+if COMMANDO; then
+  # A
+else
+  # B
+fi
+````  
+
+- `A`-blok wordt uitgevoerd als exit-status van `COMMANDO` 0 is (geslaagd, TRUE)  
+- `B`-blok wordt uitgevoerd als exit-status van `COMMANDO` verschillend is van 0 (gefaald, FALSE)  
+
+### Toepassing
+
+````bash
+if ! getent passwd "${user}" > /dev/null 2>&1; then
+  echo "Adding user ${user}"
+  adduser "${user}"
+else
+  echo "User ${user} already exists"
+fi
+````  
+
+### Operatoren && en ||
+
+`command1 && command2`  
+
+`command2` wordt enkel uitgevoerd als `command1` succesvol was (exit 0)  
+
+`command1 || command2`  
+
+`command2` wordt enkel uitgevoerd als `command1` niet succesvol was (exit ≠ 0)  
+
+### Het commando test
+
+- Alias voor `test` is `[`
+
+````bash
+# Fout:
+if[$#-eq 0]; then
+  echo "Expected at least one argument"
+fi
+
+# Juist:
+if [ "${#}" -eq "0" ]; then
+  echo "Expected at least one argument"
+fi
+````  
+
+## Automatiseren webserverinstallatie
+
+### Installeer Vagrant
+
+- Windows: `choco install vagrant`
+- MacOS: `brew install vagrant`
+- Linux: `apt install vagrant` (of `dnf`)  
+
+## Overzicht repo
+
+````
+$ tree
+.
+├── LICENSE.md
+├── provisioning
+│   ├── common.sh
+│   ├── db.sh
+│   └── web.sh
+├── README.md
+├── Vagrantfile
+└── vagrant-hosts.yml
+
+1 directory, 7 files
+````  
+
+- `Vagrantfile`: configuratiebestand van Vagrant
+  - hoef je niet aan te komen
+- `vagrant-hosts.yml`: overzicht VMs in de opstelling 
+  - incl. eigenschappen zoals IP-adres
+- `provisioning/`: installatiescripts voor VMs  
+
+### Werken met Vagrant
+
+````
+vagrant status
+Current machine states:
+
+db                        not created (virtualbox)
+web                       not created (virtualbox)
+
+This environment represents multiple VMs. The VMs are all listed
+above with their current state. For more information about a specific
+VM, run `vagrant status NAME`.
+````  
+
+### Start de db VM op
+
+````
+$ vagrant up db
+Bringing machine 'db' up with 'virtualbox' provider...
+==> db: Importing base box 'bento/almalinux-8'...
+==> db: Matching MAC address for NAT networking...
+==> db: Checking if box 'bento/almalinux-8' version '202109.10.0' is up to date...
+==> db: Setting the name of the VM: linux-2122-automation-bertvv_db_1635848839364_33506
+==> db: Clearing any previously set network interfaces...
+==> db: Preparing network interfaces based on configuration...
+    db: Adapter 1: nat
+    db: Adapter 2: intnet
+==> db: Forwarding ports...
+    db: 22 (guest) => 2222 (host) (adapter 1)
+==> db: Running 'pre-boot' VM customizations...
+==> db: Booting VM...
+==> db: Waiting for machine to boot. This may take a few minutes...
+    db: SSH address: 127.0.0.1:2222
+    db: SSH username: vagrant
+    db: SSH auth method: private key
+    db: 
+    db: Vagrant insecure key detected. Vagrant will automatically replace
+    db: this with a newly generated keypair for better security.
+    db: 
+    db: Inserting generated public key within guest...
+    db: Removing insecure key from the guest if it's present...
+    db: Key inserted! Disconnecting and reconnecting using new SSH key...
+==> db: Machine booted and ready!
+==> db: Checking for guest additions in VM...
+==> db: Setting hostname...
+==> db: Configuring and enabling network interfaces...
+==> db: Mounting shared folders...
+    db: /vagrant => /home/bert/Documents/Vakken/Linux/21-22/linux-2122-automation-bertvv
+==> db: Running provisioner: shell...
+    db: Running: /tmp/vagrant-shell20211102-9694-yq9qn5.sh
+    db: [LOG]  === Starting common provisioning tasks ===
+    db: [LOG]  Ensuring SELinux is activePermissivePermissivePermissive
+    db: [LOG]  Installing useful packages
+    [...]
+    db: [LOG]  Securing the database
+    db: [LOG]  Creating database and user
+    db: [LOG]  Creating database table and add some data
+````  
+
+### Inloggen
+
+````
+vagrant ssh db
+
+This system is built by the Bento project by Chef Software
+More information can be found at https://github.com/chef/bento
+[vagrant@db ~]$ ip a show dev eth1
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:1f:c4:a7 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.76.3/24 brd 192.168.76.255 scope global noprefixroute eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe1f:c4a7/64 scope link 
+       valid_lft forever preferred_lft forever
+[vagrant@db ~]$
+````  
+
+### Belangrijkste commando’s
+
+|Commando              |Taak                        |
+|----------------------|----------------------------|
+|`vagrant status`      |Overzicht omgeving          |
+|`vagrant up VM`       |start VM op                 |
+|`vagrant ssh VM`      |inloggen op VM              |
+|`vagrant halt VM`     |VM uitschakelen             |
+|`vagrant reload VM`   |VM rebooten                 |
+|`vagrant provision VM`|Installatie-script uitvoeren|
+|`vagrant destroy VM`  |VM vernietigen              |  
+
+
+## Complexere scripts
+
+### Communicatie script/omgeving
+
+Informatie uitwisselen tussen script en omgeving:  
+- I/O: `stdin`, `stdout`, `stderr`
+- Positionele parameters: `$1`, `$2`, enz
+- Exit-status (0-255)
+- Omgevingsvariabelen, vb:
+  ````
+  VAGRANT_LOG=debug vagrant up
+  ````  
+
+### Functies in Bash
+
+````bash
+functie_naam() {
+    # code
+}
+````  
+
+Een functie gedraagt zich als een script!  
+- oproepen: `functie_naam arg1 arg2 arg3`
+- positionele parameters: `${1}`, `${2}`, enz.
+- `return STATUS` ipv `exit`  
+
+### Scope variabelen bij functies - global
+
+````bash
+#! /usr/bin/env bash
+var_a=a
+
+foo() {
+  var_b=b
+  echo "${var_a} ${var_b}"
+}
+
+foo
+
+echo "${var_a} ${var_b}"
+````  
+
+### Scope variabelen bij functies - local
+
+````bash
+#! /usr/bin/env bash
+var_a=a
+
+foo() {
+  local var_b=b
+  echo "${var_a} ${var_b}"
+}
+
+foo
+
+echo "${var_a} ${var_b}"
+````  
+
+### Functies in Bash: voorbeeld
+
+````bash
+# Usage: copy_iso_to_usb ISO_FILE DEVICE
+# Copy an ISO file to a USB device, showing progress with pv (pipe viewer)
+# e.g. copy_iso_to_usb FedoraWorkstation.iso /dev/sdc
+copy_iso_to_usb() {
+  local iso="${1}"
+  local destination="${2}"
+  local iso_size
+
+  iso_size=$(stat -c '%s' "${iso}")
+
+  printf "Copying %s (%'dB) to %s\n" \
+    "${iso}" "${iso_size}" "${destination}"
+
+  dd if="${iso}" \
+    | pv --size "${iso_size}" \
+    | sudo dd of="${destination}"
+}
+````  
+
+### Case
+
+````bash
+case EXPR in
+  PATROON1)
+    # ...
+    ;;
+  PATROON2)
+    # ...
+    ;;
+  *)
+    # ...
+    ;;
+esac
+````  
+
+````bash
+option="${1}"
+
+case "${option}" in
+  -h|--help|'-?')
+    usage
+    exit 0
+    ;;
+  -v|--verbose)
+    verbose=y
+    shift
+    ;;
+  *)
+    printf 'Unrecognized option: %s\n' "${option}"
+    usage
+    exit 1
+    ;;
+esac
+````  
+
+## Plannen van systeembeheertaken: cronjobs
+
+### Processen op de achtergrond
+
+````
+$ vi test.txt
+Ctrl+Z
+
+[1]+  Stopped                 gvim -v test.txt
+$ bg
+[1]+ sleep 30 &
+
+$ find / -type f > all-files.txt 2>&1 &
+[2] 4321
+````  
+
+- `Ctrl+Z` zet de uitvoer van een proces stil (nog niet afgesloten!)
+- `bg` start het proces terug op, maar in de achtergrond
+- `&` op het einde van een regel start proces op de achtergrond = combinatie van `Ctrl+Z` en `bg`  
+
+### Achtergrondprocessen beheren
+
+|Commando |Betekenis                                |
+|---------|-----------------------------------------|
+|`jobs`   |Lijst van achtergrondprocessen           |
+|`jobs -l`|Idem, toon ook Process ID (PID)          |
+|`fg NUM` |Breng proces op voorgrond                |
+|`bg NUM` |Herstart stilgelegd proces op achtergrond|  
+
+### Processen eenmalig plannen
+
+````
+$ at now + 2 minutes
+warning: commands will be executed using /bin/sh
+at Mon Nov 15 15:47:00 2021
+at> date > /tmp/date.txt     
+at> <Ctrl+D>
+job 9 at Mon Nov 15 15:47:00 2021
+$ watch cat /tmp/date.txt
+````  
+
+- `at` zal binnen 2 minuten het opgegeven commando uitvoeren
+- Met `watch` herbekijken we elke 2s de inhoud van het doelbestand  
+
+Nog `at` voorbeelden:
+- `at 3:03 AM`
+- `at midnight`
+- `at 1am tomorrow`
+- `at now + 3 weeks`  
+
+### Overzicht
+
+|Commando  |Betekenis                                     |
+|----------|----------------------------------------------|
+|`at`      |Voer commando’s uit op specifiek tijdstip     |
+|`atq`     |Geeft lijst van geplande taken                |
+|`atrm NUM`|Verwijder taak met id NUM                     |
+|`batch`   |Voer taak uit wanneer systeem minder belast is|  
+
+### Processen herhaald plannen: cron
+
+- Bekijk `/etc/crontab`
+- Bevat taken die regelmatig gepland worden: 
+  - tijdsaanduiding
+  - commando
+- Crontab per gebruiker: 
+  - tonen: `crontab -l`
+  - bewerken: `crontab -e`  
+
+### Tijdsaanduiding
+
+|Veld|Beschrijving    |Waarden|
+|----|----------------|-------|
+|MIN |Minuten         |0-59   |
+|HOUR|Uren            |0-23   |
+|DOM |Dag van de maand|1-31   |
+|MON |Maand           |1-12   |
+|DOW |Dag van de week |0-7    |
+|CMD |Commando        |       |  
+
+Dag van de week: zo = 0/7, ma = 1, di = 2, …  
+
+### Voorbeelden
+
+````bash
+# use /bin/sh to run commands, no matter what /etc/passwd says
+SHELL=/bin/sh
+# mail any output to `paul', no matter whose crontab this is
+MAILTO=paul
+# Set time zone
+CRON_TZ=Japan
+# run five minutes after midnight, every day
+5 0 * * *       $HOME/bin/daily.job >> $HOME/tmp/out 2>&1
+# run at 2:15pm on the first of every month -- output mailed to paul
+15 14 1 * *     $HOME/bin/monthly
+# run at 10 pm on weekdays, annoy Joe
+0 22 * * 1-5    mail -s "It's 10pm" joe%Joe,%%Where are your kids?%
+23 0-23/2 * * * echo "run 23 minutes after midn, 2am, 4am ..., everyday"
+5 4 * * sun     echo "run at 5 after 4 every sunday"
+````  
+
+## Troubleshooting, SSH: Introduction
+
+### Agenda
+
+- Bottom-up approach
+- Network access (Link) layer
+- Internet layer
+- Transport
+- Application Layer
+- SELinux  
+
+### Use a bottom-up approach
+
+|Layer         |Protocols             |Keywords             |
+|--------------|----------------------|---------------------|
+|Application   |HTTP, DNS, SMB, FTP, …|sockets, port numbers|
+|Transport     |TCP, UDP              |sockets, port numbers|
+|Internet      |IP, ICMP              |routing, IP address  |
+|Network access|Ethernet              |switch, MAC address  |
+|Physical      |                      |cables               |  
+
+## Network Access Layer
+
+### Network Access Layer
+
+- bare metal:
+  - test the cable(s)
+  - check switch/NIC LEDs
+- VM (e.g. VirtualBox): 
+  - check virtual network adapter type & settings
+- `ip link`  
+
+## Internet Layer
+
+### Checklist: Internet Layer
+
+1. Local network configuration
+2. Routing within the LAN  
+
+Know the expected values!  
+
+Checking Local network configuration:  
+
+1. IP address: `ip a`
+2. Default gateway: `ip r`
+3. DNS service: `/etc/resolv.conf`  
+
+### Local configuration: ip address
+
+- IP address?
+- In correct subnet?
+- DHCP or fixed IP?
+- Check configuration: `/etc/sysconfig/network-scripts/ifcfg-*`  
+
+Example: DHCP  
+
+````
+$ cat /etc/sysconfig/network-scripts/ifcfg-enp0s3 
+TYPE=Ethernet
+BOOTPROTO=dhcp
+NAME=enp0s3
+DEVICE=enp0s3
+ONBOOT=yes
+[...]
+````  
+
+Example: Static IP  
+
+````
+$ cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+BOOTPROTO=none
+ONBOOT=yes
+IPADDR=192.168.76.73
+NETMASK=255.255.255.0
+DEVICE=enp0s8
+[...]
+````  
+
+### Common causes (DHCP)
+
+- No IP
+  - DHCP unreachable
+  - DHCP won’t give an IP
+- 169.254.x.x 
+  - No DHCP offer, “link-local” address
+- Unexpected subnet 
+  - Bad config (fixed IP set?)
+
+Watch the logs: `sudo journalctl -f`  
+
+### Common causes (Fixed IP)
+
+- Unexpected subnet 
+  - Check config
+- Correct IP, “network unreachable”
+  - Check network mask  
+
+### Local configuration: ip route
+
+- Default GW present?
+- In correct subnet?
+- Check network configuration  
+
+### DNS server: /etc/resolv.conf
+
+- `nameserver` option present?
+- Expected IP?  
+
+### Checklist: Internet Layer
+
+Checking routing within the LAN:  
+
+- Ping between hosts  
+- Ping default GW/DNS 
+- Query DNS (`dig`, `nslookup`, `getent`)  
+
+### LAN connectivity: ping
+
+- GUI-VM-> VM: `ping 192.168.76.72`
+- VM -> GUI-VM: `ping 192.168.76.101`
+- VM -> NAT-GW: `ping 10.0.2.2`
+- VM -> NAT-DNS: `ping 10.0.2.3`  
+
+Remark: some routers block ICMP!  
+
+### LAN connectivity: DNS
+
+- `dig icanhazip.com`
+- `nslookup icanhazip.com`
+- `getent ahosts icanhazip.com`  
+
+### LAN connectivity
+
+Next step: routing beyond GW  
+
+## Transport Layer
+
+### Checklist: Transport Layer
+
+1. Service running? `sudo systemctl status SERVICE`
+2. Correct port/inteface? `sudo ss -tulpn`
+3. Firewall settings: `sudo firewall-cmd --list-all`  
+
+### Is the service running?
+
+`systemctl status httpd.service`  
+
+- `active (running)` vs. `inactive (dead)`
+  - `systemctl start httpd`  
+  - Fail? See below (Application layer)
+- Start at boot: `enabled` vs. `disabled`
+  - `systemctl enable httpd`  
+
+### Firewall settings
+
+`sudo firewall-cmd --list-all`  
+
+- Is the service or port listed?
+- Use `--add-service` if possible 
+  - Supported: `--get-services`
+- Don’t use both `--add-service` and `--add-port`
+- Add `--permanent`
+- `--reload` firewall rules  
+
+````
+$ sudo firewall-cmd --add-service=http --permanent
+$ sudo firewall-cmd --add-service=https --permanent
+$ sudo firewall-cmd --reload
+````  
+
+### Correct ports/interfaces?
+
+- Use `ss` (not `netstat`)
+  - TCP service: `sudo ss -tlnp`
+  - UDP service: `sudo ss -ulnp`
+- Correct port number? 
+  - See `/etc/services`
+- Correct interface? 
+  - Only loopback?  
+
+## Application Layer
+
+### Checklist: Application Layer
+
+- Check the logs: `journalctl`
+- Validate config file syntax
+- Use (command line) client tools 
+  - e.g. `curl`, `smbclient` (Samba), `dig` (DNS), etc.
+  - Netcat (`ncat`, `nc`)
+- Other checks are application dependent
+  - Read the reference manuals!  
+
+### Check the log files
+
+- Either journalctl: `journalctl -f -u httpd.service`
+- Or `/var/log/`:
+  - `tail -f /var/log/httpd/error_log`  
+
+### Check config file syntax
+
+- Application dependent, for Apache: `apachectl configtest`  
+
+### Read the fine manual!
+
+- RedHat Manuals: 
+  - System Administrator’s Guide
+  - Networking guide
+  - SELinux guide
+- Reference manuals, e.g.: 
+  - https://httpd.apache.org/docs/2.4/configuring.html
+- Man pages 
+  - smb.conf(5), dhcpd.conf(5), named.conf(5), …  
+
+## SELinux troubleshooting
+
+### SELinux
+
+- SELinux is Mandatory Access Control in the Linux kernel
+- Settings: 
+  - Booleans: `getsebool`, `setsebool``
+  - Contexts, labels: `ls -Z`, `chcon`, `restorecon`
+  - Policy modules: `sepolicy`  
+
+### Check file context
+
+- Is the file context as expected? 
+  - `ls -Z /var/www/html`
+- Set file context to default value
+  - `sudo restorecon -R /var/www/`
+- Set file context to specified value 
+  - `sudo chcon -t httpd_sys_content_t test.php`  
+
+### Check booleans
+
+`getsebool -a | grep http`  
+
+- Know the relevant booleans! (RedHat manuals)
+- Enable boolean:
+  - `sudo setsebool -P httpd_can_network_connect_db on`  
+
+## General guidelines
+
+- Back up config files before changing
+- Be systematic, bottom-up
+- Be thorough, don’t skip steps
+- Do not assume: test
+- Know your environment
+- Know your log files
+- Read The F*** Error Message!
+- Open logs in separate terminal
+- Small steps
+- Validate the syntax of config files
+- Reload service after config change
+- Verify each change
+- Keep a cheat sheet/checklist
+  - E.g. https://github.com/bertvv/cheat-sheets
+- Use a configuration management system
+- Automate tests
+  - E.g. https://github.com/HoGentTIN/elnx-sme/blob/master/test/pu001/lamp.bats
+- Don’t ping Google!  
+
+## Mount: Pre knowledge  
+
+### Disk devices
+
+Sata disks devices:  
+
+````
+$ ls /dev/sd*
+/dev/sda    /dev/sdb
+````  
+
+### Disk partitions
+
+Every disk:  
+
+- maximum 4 primary/extended partitions 
+- one extended partition can host further logical (sub)partitions  
+
+|Partition Type  |naming|
+|----------------|------|
+|Primary (max 4) |1-4   |
+|Extended (max 1)|1-4   |
+|Logical         |5-    |  
+
+### fdisk
+
+Display and modify partitions of a disk.  
+
+````
+$ sudo fdisk -l 
+Disk /dev/sda: 64 GiB, 68719476736 bytes, 134217728 sectors
+[...]
+
+Device     Boot   Start       End   Sectors  Size Id Type
+/dev/sda1          2048   4501503   4499456  2.1G 82 Linux swap / Solaris
+/dev/sda2  *    4501504 134217727 129716224 61.9G 83 Linux
+````   
+
+### File systems
+
+Linux file systems (common):  
+
+- ext2
+- ext3 - with journaling  
+- ext4 - latest version, with journaling  
+- xfs  
+
+Other file systems:  
+
+- vfat
+- ntfs
+- iso9660  
+
+### Formating a partition
+
+mkfs = MaKe FileSystem  
+
+````
+$ sudo mkfs -t ext3 /dev/sdb3
+mke2fs 1.45.5 (07-Jan-2020)
+Creating filesystem with 244224 4k blocks and 61056 inodes
+Filesystem UUID: 396d698d-eac6-44f3-9b95-34db7d461664
+Superblock backups stored on blocks:
+    32768, 98304, 163840, 229376
+
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (4096 blocks): done
+Writing superblocks and filesystem accounting information: done
+````  
+
+### Changing defaults of a file system
+
+Every partition has e.g. reserved blocks for root user only:  
+
+````
+$ sudo tune2fs -l /dev/sdb3 | grep -i "block count"
+Block count:              104388
+Reserved block count:     5219
+````  
+
+Update with `tune2fs` e.g. reduce to 3% reserved blocks  
+
+````
+$ sudo tune2fs -m3 /dev/sdb3 "
+tune2fs 1.45 (Jan-2020)
+Setting reserved blocks percentage to 3 (3131 blocks)
+````  
+
+## Mount
+
+### Manual mount
+
+mount = Making a partition available in the file tree  
+
+1. make a mount point ~ a mount directory, e.g.
+  ````
+  $ sudo mkdir /mnt/newmountpoint
+  ````  
+2. bind the partition to the mount point
+  ````
+  $ sudo mount -t ext3 /dev/sdb3 /mnt/newmountpoint
+  ````  
+
+### Display mount points
+
+````
+$ mount | grep sd
+/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)
+/dev/sda4 on /home type ext4 (rw,relatime)
+````  
+
+### Permanent mounts
+
+Partitions which will be mounted at boot: `/etc/fstab`  
+
+````
+$ cat /etc/fstab
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/dev/sda1           /               ext4    errors=remount-ro 0       1
+/dev/sda2           /boot           ext4    defaults        0       2
+/dev/sda4           /home           ext4    defaults        0       2
+/dev/sda3           none            swap    sw              0       0
+````  
+
+### Mount options
+
+Mount has some useful options:  
+
+- ro - read-only
+- rw - read-write
+- remount - mount an already mounted device with new options  
+
+````
+$ mount | grep boot 
+/dev/sda2 on /boot type ext4 (rw,relatime)
+$ sudo mount -o remount,ro /boot/
+$ mount | grep boot 
+/dev/sda2 on /boot type ext4 (ro,relatime)
+````  
+
+## UUID
+
+### UUID def
+
+UUID = universally unique identifier  
+
+- 128 bits
+- generated while formating   
+
+### lookup UUID
+
+````
+$ sudo tune2fs -l /dev/sda2 | grep UUID
+Filesystem UUID:          fd5db924-4be6-4fee-9a92-ca9db8fe2b9c
+$ blkid /dev/sda2
+/dev/sda2: UUID="fd5db924-4be6-4fee-9a92-ca9db8fe2b9c" TYPE="ext4" PARTUUID="97584a69-02"
+````  
+
+### fstab with UUID
+
+unique indication of partition in case e.g. sda and sdb get switched when booting  
+
+````
+$ cat /etc/fstab
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/sda1 during installation
+UUID=757350f2-9cb2-4ce5-86bc-4528dfe9d9ac /               ext4    errors=remount-ro 0       1
+# /boot was on /dev/sda2 during installation
+UUID=fd5db924-4be6-4fee-9a92-ca9db8fe2b9c /boot           ext4    defaults        0       2
+# /home was on /dev/sda4 during installation
+UUID=502c37ca-255c-4a38-9294-9802a5fb5941 /home           ext4    defaults        0       2
+# swap was on /dev/sda3 during installation
+UUID=b559d746-ef9d-45bc-acfb-faa036b3418f none            swap    sw              0       0
+````  
+
+## DNS-server met BIND
+
+### Agenda
+
+- DNS
+- BIND op Enterprise Linux
+- Configuratie
+- Zonebestanden  
+
+http://www.zytrax.com/books/dns/  
+
+zie h10  
+
+
+
+
+
+
 
 
 
