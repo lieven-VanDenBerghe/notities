@@ -38,9 +38,9 @@ Ga naar 3.2 (3 = Utilities, 2 = Data Set) en vul in + option a voor alocate.
 
 ## Rename data set
 
-![renamePDS](images/renamePDS.png)  
+![renamePDS](images/RenamePDS.png)  
 
-![renamePDS2](images/renamePDS2.png)  
+![renamePDS2](images/RenamePDS2.png)  
 
 ## Edit dataset
 
