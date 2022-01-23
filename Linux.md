@@ -809,6 +809,16 @@ Show sockets: `ss`
 sudo ss -tlnp
 ````  
 
+(poot opzoeken)  
+````
+getend services http
+
+getend services 433
+
+````  
+
+
+
 ### Logbestanden
 
 Voorbeeld voor Apache:  
@@ -2283,3 +2293,192 @@ r=lees w=schrijf x=uitvoer
 (verwijst naar bestand)  
 Ln "orgineel" "naam link" = hard link  
 
+# linux oef
+
+## opgave 
+
+Maak een script `backup-alt.sh` dat in de map `/etc/alternatives` op zoek gaat naar alle symbolisch gelinkte bestanden die starten met letters e tot n `[e-n]`. Het script maakt een backup van deze bestanden op de webserver (op dezelfde host) op de volgende manier:  
+  
+1. Het script installeert automatisch de webserver `nginx`, voor het geval dit nog niet geïnstalleerd zou zijn.
+
+- na installatie wordt de standaard documentenmap veranderd naar `/var/www/backups` (zie `/etc/nginx/nginx.conf`) hint: gebruik `sed`.  
+
+- Je gaat na of deze map bestaat; indien niet maak je ze aan.  
+
+- de server wordt én enabled, én gestart met deze nieuwe config  
+
+- de firewall wordt aangepast zodat de poort van de server toegankelijk is via elk IP-adres  
+
+- gebruik idempotente commando's indien mogelijk; indien niet voer je ze enkel uit indien nodig.  
+
+- de output van het installeren van de webserver wordt volledig onderdrukt (stdout én stderr naar `/dev/null`)  
+
+2. Backupscript  
+
+- de datum wordt weergegeven bij de start van het script, gevolgd door een nieuwe lijn. E.g.  
+
+````
+Vandaag is het 2022-01-22.
+````  
+
+- de bestanden worden opgelijst in een `indexbestand`, dat geplaatst wordt in een map `~/BackupDir` in jouw home folder. Zorg dat deze map leeg is voor je aan de slag gaat; foutboodschappen hou je van de CLI weg.  
+
+- als deze map niet zou bestaan op het systeem, geef je een foutboodschap en onderbreek je het script.  
+
+- de bestanden worden gekopieerd naar deze map, gebruik makend van dit `indexbestand`  
+
+- hernoem alle bestanden in deze map die starten met de letters `mta-`: waar mta staat, moet MTA komen te staan. E.g. mta-pam wordt MTA-pam  
+
+- de bestanden in de map (maar niet de map zelf) verander je allemaal van permissie: elk bestand wordt voor de eigenaar read only, zonder verdere permissies.  
+
+- de map met alle bestanden er in wordt opgeslagen in een tarball genaamd `alternatives_<datum>.tgz`. De bestanden in de tarball worden opgeslagen zonder hun absolute padnaam.  
+
+- nadat de tarball werd aangemaakt, wordt hij gekopieerd naar de map `/var/www/backups`, zodat hij via de webserver beschikbaar is. Toon als enige uitvoer van het script de inhoud van deze tarball (inclusief bestandsnaam).  
+
+Verwachte output:  
+
+````
+Vandaag is het 2022-01-22.
+​
+Inhoud van /var/www/backups/alternatives_2022-01-22.tgz:
+ifdown
+ifup
+ld
+libnssckbi.so.x64_64
+mta
+MTA-mailq
+MTA-newalaises
+MTA-pam
+MTA-rmail
+MTA-sendmail
+````  
+
+## oplossing
+
+````bash
+#! /bin/bash
+
+# Stop het script bij een onbestaande variabele
+set -o errexit   # abort on nonzero exitstatus
+set -o nounset   # abort on unbound variable
+set -o pipefail  # do not mask errors in piped commands
+
+### Algemene variabelen wrden eerst gedefinieerd
+# De map waarin je op zoek gaat naar het opgegeven type bestanden
+SEARCH_DIR=/etc/alternatives
+# De map waar je de documenten gaat opslaan
+BACKUP_TEMP_DIR=/home/vagrant/BackupDir
+BACKUP_DIR=/var/www/backups
+
+
+### --- functions ---
+
+# installeer de webserver, ook al zou de service al geïnstalleerd zijn. 
+# Gebruik idempotente commando's waar mogelijk.
+function install_nginx {
+  # Installeer de webserver software 
+  # dnf update
+  # dnf -y install httpd mariadb-server php
+  dnf -y install nginx
+
+  # Ga na of de map voor de web-inhoud bestaat. Indien niet, maak ze aan
+  if [ ! -e $BACKUP_DIR ] ; then
+    mkdir /var/www
+    mkdir $BACKUP_DIR
+  fi
+
+  # Pas de configuratie van de webserver aan
+  sed -i 's/\/usr\/share\/nginx\/html/\/var\/www\/backups/g' /etc/nginx/nginx.conf
+
+
+  # Herstart de service
+  systemctl start nginx
+  systemctl enable nginx
+
+  # Firewall ... 
+  sudo firewall-cmd --add-service=http --permanent
+  sudo firewall-cmd --add-service=https --permanent
+  sudo firewall-cmd --reload
+
+  systemctl restart nginx
+}
+
+# kopieer de symbolisch gelinkte bestanden van de zoekmap naar de backupmap, inclusief indexbestand
+function copy_symlink_files {
+  local WorkDIR=$SEARCH_DIR
+  local DestDIR=$BACKUP_TEMP_DIR
+
+  # Hint: werk met find en schrijf naar een tijdelijk bestand pamd_index.txt
+  if [ ! -e $DestDIR ] ; then
+    printf "De map $DestDIR bestaat niet.\n"
+    exit
+  fi
+
+  rm -rf /home/vagrant/BackupDir/*
+
+  touch /home/vagrant/BackupDir/pamd_index.txt | ls /etc/alternatives/ | grep '^[E-Ne-n]'>> /home/vagrant/BackupDir/pamd_index.txt
+
+  #  kopieer alle bestanden uit het indexbestand met een loop
+  while read line;
+  do
+  cp $SEARCH_DIR/$line $BACKUP_TEMP_DIR # optie -P voor beouden link
+  #echo $line;
+  done < /home/vagrant/BackupDir/pamd_index.txt
+}
+
+function rename_mtaMTA {
+  # Zorg er voor dat er _geen_ output is van deze functie!
+  cd /home/vagrant/BackupDir
+  rename mta- MTA- mta-*
+  cd -
+}
+
+function readonly_permissions {
+  cd BackupDir/
+  chmod -R 400 *
+  cd -
+}
+
+function create_tarball {
+  local WorkDIR=$BACKUP_DIR
+  local FileName=$BACKUP_TEMP_DIR
+  
+  # maak de tarbal aan
+  tar -cjf alternatives_$DATUM.tgz -C $BACKUP_TEMP_DIR $(ls $BACKUP_TEMP_DIR)
+
+  # kopieer de tarball naar de doelmap
+  cp /home/vagrant/alternatives_$DATUM.tgz $WorkDIR
+
+  # geef de inhoud van de tarbal weer
+  printf "Inhoud van $WorkDIR/alternatives_$DATUM.tgz:\n"
+  tar -tf alternatives_$DATUM.tgz
+
+}
+
+
+### --- main script ---
+### Voer de opeenvolgende taken uit
+
+# installeer nginx, ook al is het reeds geïnstalleerd. 
+install_nginx > /dev/null 2>&1
+
+# geef de datum weer van vandaag, gebruik deze globale variabele
+DATUM=$(date +"%Y-%m-%d")
+printf "Vandaag is het $DATUM.\n\n"
+
+# leegmaken doelmap
+
+copy_symlink_files 2> /dev/null 
+
+rename_mtaMTA > /dev/null 2>&1
+
+readonly_permissions > /dev/null 2>&1
+
+create_tarball 
+
+# setenforce 0 # om het toe te laten beveiliging uit zetten
+# wget http://localost/alternatives_2022-01-10.tgz # om te downloaden
+
+# Einde script
+
+````
